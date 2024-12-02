@@ -9,10 +9,10 @@ const { saveAs } = require('file-saver');
 const app = express();
 app.use(cors());
 
-const port = 3000;
+const port = process.env.PORT || 3000; // Dynamically set port for deployment
 
-// Serve static files from the "public" directory
-app.use(express.static(path.join(__dirname, 'index.html')));
+// Serve static files (e.g., your HTML, CSS, JS) from the "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // API to extract images
 app.get('/extract-images', async (req, res) => {
@@ -70,9 +70,9 @@ app.get('/download-all-images', async (req, res) => {
     }
 });
 
-// Render the HTML page
+// Render the HTML page (you need to move your index.html to the 'public' folder)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(port, () => {
