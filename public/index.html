@@ -4,91 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webpage Image Extractor</title>
+    <!-- React and ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <!-- TailwindCSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- Babel CDN for JSX support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Webpage Image Extractor</h1>
-        <div class="flex flex-col items-center space-y-4">
-            <input type="text" id="urlInput" placeholder="Enter webpage URL" class="w-4/5 md:w-1/2 px-4 py-2 border border-gray-300 rounded shadow-sm" />
-            <button id="extractBtn" class="bg-blue-500 text-white px-6 py-2 rounded shadow hover:bg-blue-600">Extract Images</button>
-        </div>
-        <div class="mt-8">
-            <h2 class="text-xl font-semibold text-center mb-4">Extracted Images</h2>
-            <div id="imageContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-        </div>
-        <div class="mt-4 text-center">
-            <button id="downloadAllBtn" class="bg-green-500 text-white px-6 py-2 rounded shadow hover:bg-green-600 hidden">Download All Images</button>
-        </div>
-    </div>
+    <div id="root"></div>
 
-    <script>
-        document.getElementById("extractBtn").addEventListener("click", async () => {
-            const url = document.getElementById("urlInput").value;
-            const imageContainer = document.getElementById("imageContainer");
-            const downloadAllBtn = document.getElementById("downloadAllBtn");
+    <script type="text/babel">
+        const { useState } = React;
 
-            imageContainer.innerHTML = ""; // Clear previous images
-            downloadAllBtn.classList.add("hidden"); // Hide the download button initially
+        const App = () => {
+            const [url, setUrl] = useState('');
+            const [images, setImages] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
 
-            if (!url) {
-                alert("Please enter a URL");
-                return;
-            }
+            // Function to handle extracting images
+            const extractImages = async () => {
+                setImages([]);
+                setError(null);
+                setLoading(true);
 
-            try {
-                const response = await fetch(`/extract-images?url=${encodeURIComponent(url)}`);
-                const data = await response.json();
-
-                if (data.success && data.images.length > 0) {
-                    const images = data.images;
-
-                    // Display images in a grid
-                    images.forEach((imgUrl) => {
-                        const imgElement = document.createElement("img");
-                        imgElement.src = imgUrl;
-                        imgElement.alt = "Extracted image";
-                        imgElement.className = "w-full h-auto rounded shadow";
-
-                        // Create the download button for each image
-                        const downloadBtn = document.createElement("button");
-                        downloadBtn.className = "bg-yellow-500 text-white px-4 py-2 rounded shadow mt-2 hover:bg-yellow-600";
-                        downloadBtn.textContent = "Download Image";
-                        
-                        // Set up the download link
-                        downloadBtn.onclick = () => {
-                            const downloadUrl = `/download-image?url=${encodeURIComponent(imgUrl)}`;
-                            window.location.href = downloadUrl;
-                        };
-
-                        const imageWrapper = document.createElement('div');
-                        imageWrapper.className = "relative";
-                        imageWrapper.appendChild(imgElement);
-                        imageWrapper.appendChild(downloadBtn);
-
-                        imageContainer.appendChild(imageWrapper);
-                    });
-
-                    // Show the download button if images are found
-                    downloadAllBtn.classList.remove("hidden");
-
-                    // Attach event listener for download
-                    downloadAllBtn.onclick = () => downloadAllImages(images);
-                } else {
-                    imageContainer.innerHTML = `<p class="text-center text-red-500">No images found on this webpage.</p>`;
+                if (!url) {
+                    alert('Please enter a URL');
+                    setLoading(false);
+                    return;
                 }
-            } catch (error) {
-                console.error("Error fetching images:", error);
-                alert("Failed to fetch images.");
-            }
-        });
 
-        async function downloadAllImages(images) {
-            const zipUrl = `/download-all-images?images=${encodeURIComponent(images.join(','))}`;
-            window.location.href = zipUrl; // Redirect to download all images as a ZIP
-        }
+                try {
+                    const response = await fetch(`/extract-images?url=${encodeURIComponent(url)}`);
+                    const data = await response.json();
+
+                    if (data.success && data.images.length > 0) {
+                        setImages(data.images);
+                    } else {
+                        setError('No images found on this webpage.');
+                    }
+                } catch (err) {
+                    setError('Failed to fetch images.');
+                    console.error('Error fetching images:', err);
+                }
+                setLoading(false);
+            };
+
+            // Function to download all images as a ZIP
+            const downloadAllImages = async () => {
+                const zipUrl = `/download-all-images?images=${encodeURIComponent(images.join(','))}`;
+                window.location.href = zipUrl;
+            };
+
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">Webpage Image Extractor</h1>
+                    <div className="flex flex-col items-center space-y-4">
+                        <input
+                            type="text"
+                            id="urlInput"
+                            placeholder="Enter webpage URL"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            className="w-4/5 md:w-1/2 px-4 py-2 border border-gray-300 rounded shadow-sm"
+                        />
+                        <button
+                            onClick={extractImages}
+                            className="bg-blue-500 text-white px-6 py-2 rounded shadow hover:bg-blue-600"
+                            disabled={loading}
+                        >
+                            {loading ? 'Extracting...' : 'Extract Images'}
+                        </button>
+                    </div>
+                    {error && <p className="text-center text-red-500 mt-4">{error}</p>}
+                    {images.length > 0 && (
+                        <div className="mt-8">
+                            <h2 className="text-xl font-semibold text-center mb-4">Extracted Images</h2>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {images.map((imgUrl, index) => (
+                                    <div key={index} className="relative">
+                                        <img
+                                            src={imgUrl}
+                                            alt={`Extracted image ${index + 1}`}
+                                            className="w-full h-auto rounded shadow"
+                                        />
+                                        <button
+                                            className="bg-yellow-500 text-white px-4 py-2 rounded shadow mt-2 hover:bg-yellow-600"
+                                            onClick={() => {
+                                                const downloadUrl = `/download-image?url=${encodeURIComponent(imgUrl)}`;
+                                                window.location.href = downloadUrl;
+                                            }}
+                                        >
+                                            Download Image
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 text-center">
+                                <button
+                                    onClick={downloadAllImages}
+                                    className="bg-green-500 text-white px-6 py-2 rounded shadow hover:bg-green-600"
+                                >
+                                    Download All Images
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
