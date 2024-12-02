@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webpage Image Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Webpage Image Extractor</h1>
+        <div class="flex flex-col items-center space-y-4">
+            <input type="text" id="urlInput" placeholder="Enter webpage URL" class="w-4/5 md:w-1/2 px-4 py-2 border border-gray-300 rounded shadow-sm" />
+            <button id="extractBtn" class="bg-blue-500 text-white px-6 py-2 rounded shadow hover:bg-blue-600">Extract Images</button>
+        </div>
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold text-center mb-4">Extracted Images</h2>
+            <div id="imageContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
+        <div class="mt-4 text-center">
+            <button id="downloadAllBtn" class="bg-green-500 text-white px-6 py-2 rounded shadow hover:bg-green-600 hidden">Download All Images</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("extractBtn").addEventListener("click", async () => {
+            const url = document.getElementById("urlInput").value;
+            const imageContainer = document.getElementById("imageContainer");
+            const downloadAllBtn = document.getElementById("downloadAllBtn");
+
+            imageContainer.innerHTML = ""; // Clear previous images
+            downloadAllBtn.classList.add("hidden"); // Hide the download button initially
+
+            if (!url) {
+                alert("Please enter a URL");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/extract-images?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+
+                if (data.success && data.images.length > 0) {
+                    const images = data.images;
+
+                    // Display images in a grid
+                    images.forEach((imgUrl) => {
+                        const imgElement = document.createElement("img");
+                        imgElement.src = imgUrl;
+                        imgElement.alt = "Extracted image";
+                        imgElement.className = "w-full h-auto rounded shadow";
+
+                        // Create the download button for each image
+                        const downloadBtn = document.createElement("button");
+                        downloadBtn.className = "bg-yellow-500 text-white px-4 py-2 rounded shadow mt-2 hover:bg-yellow-600";
+                        downloadBtn.textContent = "Download Image";
+                        
+                        // Set up the download link
+                        downloadBtn.onclick = () => {
+                            const downloadUrl = `/download-image?url=${encodeURIComponent(imgUrl)}`;
+                            window.location.href = downloadUrl;
+                        };
+
+                        const imageWrapper = document.createElement('div');
+                        imageWrapper.className = "relative";
+                        imageWrapper.appendChild(imgElement);
+                        imageWrapper.appendChild(downloadBtn);
+
+                        imageContainer.appendChild(imageWrapper);
+                    });
+
+                    // Show the download button if images are found
+                    downloadAllBtn.classList.remove("hidden");
+
+                    // Attach event listener for download
+                    downloadAllBtn.onclick = () => downloadAllImages(images);
+                } else {
+                    imageContainer.innerHTML = `<p class="text-center text-red-500">No images found on this webpage.</p>`;
+                }
+            } catch (error) {
+                console.error("Error fetching images:", error);
+                alert("Failed to fetch images.");
+            }
+        });
+
+        async function downloadAllImages(images) {
+            const zipUrl = `/download-all-images?images=${encodeURIComponent(images.join(','))}`;
+            window.location.href = zipUrl; // Redirect to download all images as a ZIP
+        }
+    </script>
+</body>
+</html>
