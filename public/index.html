@@ -7,12 +7,118 @@
     <!-- React and ReactDOM CDN -->
     <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    <!-- TailwindCSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Babel CDN for JSX support -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #ffffff;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .input-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            max-width: 400px;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border: 2px solid #ff6f61;
+        }
+
+        button {
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
+        }
+
+        .images-container {
+            margin-top: 2rem;
+        }
+
+        .card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .card img {
+            width: 150px;
+            height: auto;
+            border-radius: 8px;
+            margin-right: 1rem;
+        }
+
+        .card.reverse {
+            flex-direction: row-reverse;
+        }
+
+        .card.reverse img {
+            margin-right: 0;
+            margin-left: 1rem;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -24,7 +130,6 @@
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState(null);
 
-            // Function to handle extracting images
             const extractImages = async () => {
                 setImages([]);
                 setError(null);
@@ -52,62 +157,45 @@
                 setLoading(false);
             };
 
-            // Function to download all images as a ZIP
             const downloadAllImages = async () => {
                 const zipUrl = `/download-all-images?images=${encodeURIComponent(images.join(','))}`;
                 window.location.href = zipUrl;
             };
 
             return (
-                <div className="container mx-auto px-4 py-8">
-                    <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">Webpage Image Extractor</h1>
-                    <div className="flex flex-col items-center space-y-4">
+                <div className="container">
+                    <h1>Webpage Image Extractor</h1>
+                    <div className="input-container">
                         <input
                             type="text"
-                            id="urlInput"
                             placeholder="Enter webpage URL"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
-                            className="w-4/5 md:w-1/2 px-4 py-2 border border-gray-300 rounded shadow-sm"
                         />
-                        <button
-                            onClick={extractImages}
-                            className="bg-blue-500 text-white px-6 py-2 rounded shadow hover:bg-blue-600"
-                            disabled={loading}
-                        >
+                        <button onClick={extractImages} disabled={loading}>
                             {loading ? 'Extracting...' : 'Extract Images'}
                         </button>
                     </div>
-                    {error && <p className="text-center text-red-500 mt-4">{error}</p>}
+                    {error && <p className="error">{error}</p>}
                     {images.length > 0 && (
-                        <div className="mt-8">
-                            <h2 className="text-xl font-semibold text-center mb-4">Extracted Images</h2>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {images.map((imgUrl, index) => (
-                                    <div key={index} className="relative">
-                                        <img
-                                            src={imgUrl}
-                                            alt={`Extracted image ${index + 1}`}
-                                            className="w-full h-auto rounded shadow"
-                                        />
-                                        <button
-                                            className="bg-yellow-500 text-white px-4 py-2 rounded shadow mt-2 hover:bg-yellow-600"
-                                            onClick={() => {
-                                                const downloadUrl = `/download-image?url=${encodeURIComponent(imgUrl)}`;
-                                                window.location.href = downloadUrl;
-                                            }}
-                                        >
-                                            Download Image
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="mt-4 text-center">
-                                <button
-                                    onClick={downloadAllImages}
-                                    className="bg-green-500 text-white px-6 py-2 rounded shadow hover:bg-green-600"
-                                >
-                                    Download All Images
+                        <div className="images-container">
+                            <h2 className="text-center">Extracted Images</h2>
+                            {images.map((imgUrl, index) => (
+                                <div key={index} className={`card ${index % 2 === 1 ? 'reverse' : ''}`}>
+                                    <img src={imgUrl} alt={`Image ${index + 1}`} />
+                                    <button
+                                        onClick={() => {
+                                            const downloadUrl = `/download-image?url=${encodeURIComponent(imgUrl)}`;
+                                            window.location.href = downloadUrl;
+                                        }}
+                                    >
+                                        Download
+                                    </button>
+                                </div>
+                            ))}
+                            <div className="text-center">
+                                <button onClick={downloadAllImages}>
+                                    Download All
                                 </button>
                             </div>
                         </div>
