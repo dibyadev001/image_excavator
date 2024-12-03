@@ -19,28 +19,27 @@
         }
 
         .container {
-            max-width: 900px;
+            display: flex;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
+            gap: 2rem;
         }
 
-        h1 {
-            text-align: center;
-            font-size: 2.5rem;
-            color: #ffffff;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-            margin-bottom: 2rem;
+        .input-card {
+            background: white;
+            flex: 1;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .input-container {
-            display: flex;
-            justify-content: center;
             margin-bottom: 1.5rem;
         }
 
         input[type="text"] {
-            width: 80%;
-            max-width: 400px;
+            width: 100%;
             padding: 0.8rem 1rem;
             border: none;
             border-radius: 8px;
@@ -58,7 +57,7 @@
             color: white;
             border: none;
             padding: 0.8rem 1.5rem;
-            margin: 0.5rem;
+            margin: 0.5rem 0;
             border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
@@ -76,35 +75,29 @@
             cursor: not-allowed;
         }
 
-        .images-container {
-            margin-top: 2rem;
-        }
-
-        .card {
+        .images-card {
+            flex: 2;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
             background: white;
-            padding: 1rem;
             border-radius: 12px;
+            padding: 1.5rem;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-            margin-bottom: 1rem;
+            overflow-y: auto;
+            max-height: 500px;
         }
 
-        .card img {
-            width: 150px;
+        .images-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .images-container img {
+            width: 100%;
             height: auto;
             border-radius: 8px;
-            margin-right: 1rem;
-        }
-
-        .card.reverse {
-            flex-direction: row-reverse;
-        }
-
-        .card.reverse img {
-            margin-right: 0;
-            margin-left: 1rem;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .error {
@@ -113,8 +106,11 @@
             margin-top: 1rem;
         }
 
-        .text-center {
+        h1 {
             text-align: center;
+            font-size: 2rem;
+            color: #ff6f61;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -157,49 +153,31 @@
                 setLoading(false);
             };
 
-            const downloadAllImages = async () => {
-                const zipUrl = `/download-all-images?images=${encodeURIComponent(images.join(','))}`;
-                window.location.href = zipUrl;
-            };
-
             return (
                 <div className="container">
-                    <h1>Webpage Image Extractor</h1>
-                    <div className="input-container">
-                        <input
-                            type="text"
-                            placeholder="Enter webpage URL"
-                            value={url}
-                            onChange={(e) => setUrl(e.target.value)}
-                        />
-                        <button onClick={extractImages} disabled={loading}>
-                            {loading ? 'Extracting...' : 'Extract Images'}
-                        </button>
-                    </div>
-                    {error && <p className="error">{error}</p>}
-                    {images.length > 0 && (
-                        <div className="images-container">
-                            <h2 className="text-center">Extracted Images</h2>
-                            {images.map((imgUrl, index) => (
-                                <div key={index} className={`card ${index % 2 === 1 ? 'reverse' : ''}`}>
-                                    <img src={imgUrl} alt={`Image ${index + 1}`} />
-                                    <button
-                                        onClick={() => {
-                                            const downloadUrl = `/download-image?url=${encodeURIComponent(imgUrl)}`;
-                                            window.location.href = downloadUrl;
-                                        }}
-                                    >
-                                        Download
-                                    </button>
-                                </div>
-                            ))}
-                            <div className="text-center">
-                                <button onClick={downloadAllImages}>
-                                    Download All
-                                </button>
-                            </div>
+                    <div className="input-card">
+                        <h1>Webpage Image Extractor</h1>
+                        <div className="input-container">
+                            <input
+                                type="text"
+                                placeholder="Enter webpage URL"
+                                value={url}
+                                onChange={(e) => setUrl(e.target.value)}
+                            />
+                            <button onClick={extractImages} disabled={loading}>
+                                {loading ? 'Extracting...' : 'Extract Images'}
+                            </button>
                         </div>
-                    )}
+                        {error && <p className="error">{error}</p>}
+                    </div>
+                    <div className="images-card">
+                        <h2>Extracted Images</h2>
+                        <div className="images-container">
+                            {images.map((imgUrl, index) => (
+                                <img key={index} src={imgUrl} alt={`Image ${index + 1}`} />
+                            ))}
+                        </div>
+                    </div>
                 </div>
             );
         };
